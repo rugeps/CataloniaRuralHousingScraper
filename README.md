@@ -3,6 +3,12 @@
 El present projecte aporta un paquet en Python capaç de realitzar una extracció de dadesanàlisi senzill de dades de Bitcoin. Bitcoin és
 una web de ...
 
+# Pràctica 1: Web scraping
+
+## Descripció
+
+Aquesta pràctica forma part de la asignatura _Tipología y cicle de vida de los dates_, dal Màster en Ciència de Dades de la Universitat Oberta de Catalunya. S'apliquen tècniques de _web scraping_ mitjançant el llenguatge de programació Python per extreure dades de la web [_EscapadaRural_](https://www.escapadarural.com/) i generar un _dataset_.
+
 ## Començant
 
 Per a usar el present paquet,...
@@ -25,20 +31,18 @@ Per altre banda fa falta disposar de tots els paquets llistats a `requirements.t
 
 Els testos es poden executar des de l'script "test_simple.py" (contingut en la carpeta "test").
 
-### Explicació del testeig
 
-Els testos usen les funcions de col·lecció de dades per revisar dos arxius "test_block.json" i "test_txs.json" creats en
-base a les dades aportades en l'enunciat. Es comprova que les dades comentades en l'enunciat
-coincideixin amb les que s'obtenen en analitzar els fitxers creats.
+## Membres de l'equip
 
-## Creat amb
+* **Roger Peris Serrano** - *Estudiant* - [UOC](https://www.uoc.edu)
+* **Albert Cámara Viñals** - *Estudiant* - [UOC](https://www.uoc.edu)
 
-* [PyCharm](https://www.jetbrains.com/pycharm/) - L'IDE usat
+## Contingut del repositori
 
-## Autors
+* **src/
 
-* **Albert Camara** - *Estudiant* - [UOC](https://www.uoc.edu)
-* **Roger Peris** - *Estudiant* - [UOC](https://www.uoc.edu)
+## Recursos
+
 
 ## Llicencia
 
