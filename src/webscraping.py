@@ -119,7 +119,7 @@ def get_elements_from_page(houses, content, page_number):
         h.url = house.find(class_='c-result--link')['href']
         get_details_page(h.url, h)
         try:
-            stars =  house.find(class_='c-reviews--item--stars')
+            stars = house.find(class_='c-reviews--item--stars')
         except:
             pass
 
@@ -127,9 +127,8 @@ def get_elements_from_page(houses, content, page_number):
             stars = stars.findChild()
             stars_class = stars['class'][0]
             score = extract_score(stars_class)
-
-        h.stars = stars_class if stars_class is not None else 0
-        h.score = score if score is not None else 0
+            h.stars = stars_class if stars_class is not None else 0
+            h.score = score if score is not None else 0
 
         reviews = house.find(class_='c-review--number')
         
