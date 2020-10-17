@@ -10,6 +10,9 @@ BASE_URL = 'https://www.escapadarural.com/'
 
 QUERY_URL = 'https://www.escapadarural.com/casas-rurales?'
 
+houses = []
+REGION = 'cataluna'
+
 class House:
     "This is a house class"
     url = None
@@ -114,10 +117,11 @@ def get_elements_from_page(houses, content, page_number):
     
     for house in houses_list_result:
         h = House()
-        h.name = house.find(class_='c-result--link').find("span").contents[0]
-        h.town = house.find(class_='c-h4--result').contents[0]
+        h.name = get_content(house.find(class_='c-result--link').find("span"))
+        h.town = get_content(house.find(class_='c-h4--result'))
         h.url = house.find(class_='c-result--link')['href']
         get_details_page(h.url, h)
+
         try:
             stars = house.find(class_='c-reviews--item--stars')
         except:
@@ -140,28 +144,25 @@ def get_elements_from_page(houses, content, page_number):
 
         result_items = house.find(class_="c-result--items")
 
-        try:
-            h.rent_type = result_items.find(class_='c-result--item--text').contents[0]
-        except:
-            pass
-
+        h.rent_type = get_content(result_items.find(class_='c-result--item--text'))
+        
         try:
             h.capacity = result_items.find(class_='capacity').select("div:nth-of-type(2)")[0].contents[0].replace('\n','')
         except:
             pass
 
         try:
-            h.bedrooms = result_items.select(".c-result--item div:nth-of-type(2)")[2].contents[0]
+            h.bedrooms = get_content(result_items.select(".c-result--item div:nth-of-type(2)")[2])
         except:
             pass
 
         try:
-            h.beds = result_items.select(".c-result--item div:nth-of-type(2)")[3].contents[0]
+            h.beds = get_content(result_items.select(".c-result--item div:nth-of-type(2)")[3])
         except:
             pass
 
         try:
-            h.price = house.find(class_='c-price--average').contents[0] + house.find(class_='c-price--text').contents[0]
+            h.price = get_content(house.find(class_='c-price--average')) + get_content(house.find(class_='c-price--text'))
         except:
             pass
 
@@ -185,30 +186,28 @@ def get_details_page(url, house):
     house.address["Longitude"] = float(coordinate[2])
     house.address["Latitude"] = float(coordinate[5])
     house.address["street"] = address_raw.contents[1]
-    house.address["municipality"] = address_raw.find_all("a")[0].contents[0]
-    house.address["province"] = address_raw.find_all("a")[1].contents[0]
+    house.address["municipality"] = get_content(address_raw.find_all("a")[0])
+    house.address["province"] = get_content(address_raw.find_all("a")[1])
 
     house.url_image = "https:" + soup.find(class_='c-gallery__image').attrs["src"]
 
 def main():
-    print("Python start webscraping")
+    print("Start webscraping")
     #show_technology(BASE_URL)
     #show_whois(BASE_URL)
     
-    houses = []
     current_page = 1
-    region = 'cataluna'
-    
-    content = get_page_content(QUERY_URL, region, current_page)
+
+    content = get_page_content(QUERY_URL, REGION, current_page)
     pagination = get_pagination(content)
-    get_elements_from_page(houses, content, current_page)
+       
     while(current_page <= pagination['pages']):
-
-        current_page = current_page + 1
-        print(current_page)
-        content = get_page_content(QUERY_URL, region, current_page)
+        print('Get data page', current_page)
+        content = get_page_content(QUERY_URL, REGION, current_page)
         get_elements_from_page(houses, content, current_page)
+        current_page = current_page + 1
 
+    print(len(house))
     #for house in houses:
     #    house.print()
 
