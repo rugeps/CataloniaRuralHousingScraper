@@ -78,6 +78,7 @@ def get_page_content(url, region, page_number):
     try:
         params = {'l': region, 'page': page_number}
         url = url + urllib.parse.urlencode(params)
+        print("La url es: {}".format(url))
         page = requests.get(url)
         
         soup = BeautifulSoup(page.content, 'html.parser')
@@ -113,7 +114,11 @@ def get_elements_from_page(houses, content, page_number):
     
     for house in houses_list_result:
         h = House()
-        h.name = house.find(class_='highlight').contents[0].strip()
+        # amb cuidado, només les primeres cases tenen el highlight i les classes van canviant
+        #h.name = house.find(class_='highlight').contents[0].strip()
+#        print(house.find(class_='c-result--link c-h3--result__expanded-link'))
+        print(house.find(class_='c-result--link c-h3--result__expanded-link'))
+        h.name = house.find(class_='c-result--link c-h3--result__expanded-link').find("span").contents[0]
         h.town = house.find(class_='c-h4--result').contents[0]
         h.url = house.find(class_='c-result--link')['href']
         get_details_page(h.url, h)
@@ -137,13 +142,31 @@ def get_elements_from_page(houses, content, page_number):
 
         result_items = house.find(class_="c-result--items")
 
-        h.rent_type = result_items.find(class_='c-result--item--text').contents[0]
-        h.capacity = result_items.find(class_='capacity').select("div:nth-of-type(2)")[0].contents[0].replace('\n','')
-        h.bedrooms = result_items.select(".c-result--item div:nth-of-type(2)")[2].contents[0]
-        h.beds = result_items.select(".c-result--item div:nth-of-type(2)")[3].contents[0]
-        
-        h.price = house.find(class_='c-price--average').contents[0] + house.find(class_='c-price--text').contents[0]
-    
+        try:
+            h.rent_type = result_items.find(class_='c-result--item--text').contents[0]
+        except:
+            pass
+
+        try:
+            h.capacity = result_items.find(class_='capacity').select("div:nth-of-type(2)")[0].contents[0].replace('\n','')
+        except:
+            pass
+
+        try:
+            h.bedrooms = result_items.select(".c-result--item div:nth-of-type(2)")[2].contents[0]
+        except:
+            pass
+
+        try:
+            h.beds = result_items.select(".c-result--item div:nth-of-type(2)")[3].contents[0]
+        except:
+            pass
+
+        try:
+            h.price = house.find(class_='c-price--average').contents[0] + house.find(class_='c-price--text').contents[0]
+        except:
+            pass
+
         houses.append(h)
 
 def get_details_page(url, house):
@@ -180,11 +203,13 @@ def main():
     
     content = get_page_content(QUERY_URL, region, current_page)
     pagination = get_pagination(content)
-
+    get_elements_from_page(houses, content, current_page)
     while(current_page <= pagination['pages']):
+
+        current_page = current_page + 1
         print(current_page)
-        current_page = current_page + 1 
-        #get_elements_from_page(houses, content, current_page)
+        content = get_page_content(QUERY_URL, region, current_page)
+        get_elements_from_page(houses, content, current_page)
 
     #for house in houses:
     #    house.print()
