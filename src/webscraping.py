@@ -10,17 +10,19 @@ QUERY_URL = 'https://www.escapadarural.com/casas-rurales?l=cataluna'
 
 class House:
     "This is a house class"
-    url: None
-    name: None
-    town: None
-    stars: None
-    score: None
-    reviews: None
-    rent_type: None
-    capacity: None
-    bedrooms: None
-    beds: None
-    price: None
+    url = None
+    name = None
+    town = None
+    stars = None
+    score = None
+    reviews = None
+    rent_type = None
+    capacity = None
+    bedrooms = None
+    beds = None
+    price = None
+    address = {}
+    url_image = None
 
     def print(self):
         print('-----------')
@@ -38,6 +40,8 @@ class House:
         print("Bedrooms:", self.bedrooms)
         print("Beds:", self.beds)
         print("Price:", self.price)
+        print("Address:", self.address)
+        print("URL_Image:", self.url_image)
         print('\n')
 
 def show_technology(url):
@@ -103,7 +107,7 @@ def get_elements_from_page(soup):
         h.name = house.find(class_='highlight').contents[0].strip()
         h.town = house.find(class_='c-h4--result').contents[0]
         h.url = house.find(class_='c-result--link')['href']
-        
+        get_details_page(h.url, h)
         stars =  house.find(class_='c-reviews--item--stars')
         
         if stars is not None:
@@ -136,16 +140,37 @@ def get_elements_from_page(soup):
     for house in houses:
         house.print()
 
-def get_details_page(url):
+def get_details_page(url,house):
     print("Get data from details:", url)
     page = requests.get(url)
     soup = BeautifulSoup(page.content, 'html.parser')
+    location = soup.find(class_='mapInfo c-map-info')
+
+    location_details = location.find_all(class_="c-map-info__parg")
+
+    # address_raw contains details regarding street, city,...
+    address_raw = location_details[0]
+
+    # coordinate for GPS data
+    coordinate = location_details[1].contents[1].split(" ")
+
+    # Dictionary address is created to store the function output
+    house.address["Longitude"] = float(coordinate[2])
+    house.address["Latitude"] = float(coordinate[5])
+    house.address["street"] = address_raw.contents[1]
+    house.address["municipality"] = address_raw.find_all("a")[0].contents[0]
+    house.address["province"] = address_raw.find_all("a")[1].contents[0]
+
+    house.url_image = "https:"+soup.find(class_='c-gallery__image').attrs["src"]
+
+
 
 def main():
     print("Python start webscraping")
     #show_technology(BASE_URL)
     #show_whois(BASE_URL)
-    get_list_page(QUERY_URL)
+    content = get_list_page(QUERY_URL)
+    get_elements_from_page(content)
 
 if __name__ == '__main__':
-    main()
+   main()

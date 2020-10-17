@@ -8,9 +8,9 @@ if __name__ == '__main__':
     # Reads pdf
     x = PdfReader(pdf_file_location)
 
-    # x.keys()
-    # x.Info
-    # x.Root.keys()
+    # print(x.keys())
+    # print(x.Info)
+    # print(x.Root.keys())
     # len(x.pages)
     # x.pages[0]
     # x.pages[0].Contents
