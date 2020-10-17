@@ -5,6 +5,8 @@ import re
 import urllib.parse
 import math
 from bs4 import BeautifulSoup
+from datetime import datetime
+import pandas as pd
 
 BASE_URL = 'https://www.escapadarural.com/'
 
@@ -48,6 +50,23 @@ class House:
         print("Address:", self.address)
         print("URL_Image:", self.url_image)
         print('\n')
+
+    def to_dict(self):
+        house_dict = {"url" : self.url,
+                      "name" : self.name,
+                      "town" : self.town,
+                      "stars" : self.stars,
+                      "score" : self.score,
+                      "reviews" : self.reviews,
+                      "rent_type" : self.rent_type,
+                      "capacity" : self.capacity,
+                      "bedrooms" : self.bedrooms,
+                      "beds" : self.beds,
+                      "price" : self.price,
+                      "address" : self.address,
+                      "url_image" : self.url_image
+                      }
+        return house_dict
 
 def show_technology(url):
     print("Show web technologies of:", url)
@@ -191,6 +210,30 @@ def get_details_page(url, house):
 
     house.url_image = "https:" + soup.find(class_='c-gallery__image').attrs["src"]
 
+
+def creation_of_csv(houses):
+    # Creation of pandas dataframe
+    print("Export data to csv")
+    data = {"url": [],
+            "name": [],
+            "town": [],
+            "stars": [],
+            "score": [],
+            "reviews": [],
+            "rent_type": [],
+            "capacity": [],
+            "bedrooms": [],
+            "beds": [],
+            "price": [],
+            "address": [],
+            "url_image": []
+            }
+    df_houses = pd.DataFrame(data)
+    for house in houses:
+        df_houses = df_houses.append(house.to_dict(), ignore_index=True)
+
+    df_houses.to_csv("data/"+datetime.now().strftime("%Y-%m-%d %H:%M:%S")+"_houses.csv")
+
 def main():
     print("Start webscraping")
     #show_technology(BASE_URL)
@@ -208,8 +251,7 @@ def main():
         current_page = current_page + 1
 
     print(len(houses))
-    #for house in houses:
-    #    house.print()
+    creation_of_csv(houses)
 
 
 if __name__ == '__main__':
