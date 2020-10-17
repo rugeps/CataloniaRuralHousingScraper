@@ -69,9 +69,17 @@ def get_content(element):
 
 def get_list_page(url):
     print("Get data from list page:", url)
-    page = requests.get(url)
-    soup = BeautifulSoup(page.content, 'html.parser')
-    #print(soup.prettify)
+    try:
+        page = requests.get(url)
+        soup = BeautifulSoup(page.content, 'html.parser')
+        # print(soup.prettify)
+        return soup
+    except:
+        requests.exceptions.RequestException
+
+
+
+def get_elements_from_page(soup):
 
     pagination = soup.find(class_='c-p--pager').contents[0].strip()
     
@@ -86,8 +94,7 @@ def get_list_page(url):
         print('First page item:', first_page_item)
         print('Last page item:', last_page_item) 
         print('Items per page:', str(last_page_item - first_page_item + 1))
-    
-    
+
     houses_list_result = soup.find_all(class_='c-resultSnippet')
     houses = []
 
