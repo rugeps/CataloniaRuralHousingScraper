@@ -207,7 +207,7 @@ def main():
         get_elements_from_page(houses, content, current_page)
         current_page = current_page + 1
 
-    print(len(house))
+    print(len(houses))
     #for house in houses:
     #    house.print()
 
