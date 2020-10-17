@@ -2,11 +2,13 @@ import builtwith
 import whois
 import requests
 import re
+import urllib.parse
+import math
 from bs4 import BeautifulSoup
 
 BASE_URL = 'https://www.escapadarural.com/'
 
-QUERY_URL = 'https://www.escapadarural.com/casas-rurales?l=cataluna'
+QUERY_URL = 'https://www.escapadarural.com/casas-rurales?'
 
 class House:
     "This is a house class"
@@ -71,37 +73,44 @@ def extract_score(stars):
 def get_content(element):
     return element.contents[0] if element is not None else None
 
-def get_list_page(url):
+def get_page_content(url, region, page_number):
     print("Get data from list page:", url)
     try:
+        params = {'l': region, 'page': page_number}
+        url = url + urllib.parse.urlencode(params)
         page = requests.get(url)
+        
         soup = BeautifulSoup(page.content, 'html.parser')
         # print(soup.prettify)
         return soup
     except:
         requests.exceptions.RequestException
 
-
-
-def get_elements_from_page(soup):
-
-    pagination = soup.find(class_='c-p--pager').contents[0].strip()
+def get_pagination(content):
+    pagination_result = content.find(class_='c-p--pager').contents[0].strip()
     
-    match = re.search("([0-9\\.]{1,}) - ([0-9\\.]{1,}) de ([0-9\\.]{1,}) alojamientos rurales", pagination)
+    match = re.search("([0-9\\.]{1,}) - ([0-9\\.]{1,}) de ([0-9\\.]{1,}) alojamientos rurales", pagination_result)
     
+    pagination = {}
+
     if match:
         first_page_item = int(match.group(1))
         last_page_item = int(match.group(2))
-        items = match.group(3)
+        items = int(match.group(3).replace('.', ''))
+        items_per_page = last_page_item - first_page_item + 1
+        pages = math.ceil(items/items_per_page)
 
-        print('Items:', items)
-        print('First page item:', first_page_item)
-        print('Last page item:', last_page_item) 
-        print('Items per page:', str(last_page_item - first_page_item + 1))
+    pagination['items'] = items
+    pagination['first_page_item'] = first_page_item
+    pagination['last_page_item'] = last_page_item
+    pagination['items_per_page'] = items
+    pagination['pages'] = pages
 
-    houses_list_result = soup.find_all(class_='c-resultSnippet')
-    houses = []
+    return pagination
 
+def get_elements_from_page(houses, content, page_number):
+    houses_list_result = content.find_all(class_='c-resultSnippet')
+    
     for house in houses_list_result:
         h = House()
         h.name = house.find(class_='highlight').contents[0].strip()
@@ -137,10 +146,7 @@ def get_elements_from_page(soup):
     
         houses.append(h)
 
-    for house in houses:
-        house.print()
-
-def get_details_page(url,house):
+def get_details_page(url, house):
     print("Get data from details:", url)
     page = requests.get(url)
     soup = BeautifulSoup(page.content, 'html.parser')
@@ -161,16 +167,28 @@ def get_details_page(url,house):
     house.address["municipality"] = address_raw.find_all("a")[0].contents[0]
     house.address["province"] = address_raw.find_all("a")[1].contents[0]
 
-    house.url_image = "https:"+soup.find(class_='c-gallery__image').attrs["src"]
-
-
+    house.url_image = "https:" + soup.find(class_='c-gallery__image').attrs["src"]
 
 def main():
     print("Python start webscraping")
     #show_technology(BASE_URL)
     #show_whois(BASE_URL)
-    content = get_list_page(QUERY_URL)
-    get_elements_from_page(content)
+    
+    houses = []
+    current_page = 1
+    region = 'cataluna'
+    
+    content = get_page_content(QUERY_URL, region, current_page)
+    pagination = get_pagination(content)
+
+    while(current_page <= pagination['pages']):
+        print(current_page)
+        current_page = current_page + 1 
+        #get_elements_from_page(houses, content, current_page)
+
+    #for house in houses:
+    #    house.print()
+
 
 if __name__ == '__main__':
    main()
