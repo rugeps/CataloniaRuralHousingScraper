@@ -100,7 +100,6 @@ def get_page_content(url, region, page_number):
     try:
         params = {'l': region, 'page': page_number}
         url = url + urllib.parse.urlencode(params)
-        print("La url es: {}".format(url))
         page = requests.get(url)
         
         soup = BeautifulSoup(page.content, 'html.parser')
