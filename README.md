@@ -44,10 +44,10 @@ Els testos es poden executar des de l'script "test_simple.py" (contingut en la c
 ## Recursos
 
 
-## Llicencia
+## Llicencia: Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0) 
+[![License: CC BY-NC-ND 4.0](https://img.shields.io/badge/License-CC%20BY--NC--ND%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
 
-La llicència d'aquest projecte es troba sota les llicències MIT - veure l'arxiu [LICENSE.txt](LICENSE.txt) per a més
-detalls
+S'ha escollit la llicència CC BY-NC-ND 4.0 per assegurar que no es faci un us comercial ni crear nous datasets a partir del dataset extret.
 
 ## Agraïments
 
