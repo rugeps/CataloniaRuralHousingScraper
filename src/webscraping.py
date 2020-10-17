@@ -114,11 +114,7 @@ def get_elements_from_page(houses, content, page_number):
     
     for house in houses_list_result:
         h = House()
-        # amb cuidado, només les primeres cases tenen el highlight i les classes van canviant
-        #h.name = house.find(class_='highlight').contents[0].strip()
-#        print(house.find(class_='c-result--link c-h3--result__expanded-link'))
-        print(house.find(class_='c-result--link c-h3--result__expanded-link'))
-        h.name = house.find(class_='c-result--link c-h3--result__expanded-link').find("span").contents[0]
+        h.name = house.find(class_='c-result--link').find("span").contents[0]
         h.town = house.find(class_='c-h4--result').contents[0]
         h.url = house.find(class_='c-result--link')['href']
         get_details_page(h.url, h)
