@@ -55,14 +55,16 @@ def get_list_page(url):
         print('Last page item:', last_page_item) 
         print('Items per page:', str(last_page_item - first_page_item + 1))
     
-    
+
+    # "houses" is an array containing each "article" element related to individual "house"
     houses = soup.find_all(class_='c-resultSnippet')
-       
+
+    # each "house" is extracted from the previous array
     for house in houses:
         name = house.find(class_='highlight').contents[0].strip()
         town = house.find(class_='c-h4--result').contents[0]
         
-        stars =  house.find(class_='c-reviews--item--stars')
+        stars = house.find(class_='c-reviews--item--stars')
         
         if stars is not None:
             stars = stars.findChild()
