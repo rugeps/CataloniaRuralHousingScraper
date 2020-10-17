@@ -28,7 +28,7 @@ class House:
     bedrooms = None
     beds = None
     price = None
-    address = {}
+    address = None
     url_image = None
 
     def print(self):
@@ -136,7 +136,7 @@ def get_elements_from_page(houses, content, page_number):
     
     for house in houses_list_result:
         h = House()
-        h.name = get_content(house.find(class_='c-result--link').find("span"))
+        h.name = get_content(house.find(class_='c-result--link').find("span")).strip()
         h.town = get_content(house.find(class_='c-h4--result'))
         h.url = house.find(class_='c-result--link')['href']
         get_details_page(h.url, h)
@@ -151,7 +151,7 @@ def get_elements_from_page(houses, content, page_number):
             stars_class = stars['class'][0]
             score = extract_score(stars_class)
             h.stars = stars_class if stars_class is not None else 0
-            h.score = score if score is not None else 0
+            h.score = float(score) if score is not None else 0
 
         reviews = house.find(class_='c-review--number')
         
@@ -202,6 +202,7 @@ def get_details_page(url, house):
     coordinate = location_details[1].contents[1].split(" ")
 
     # Dictionary address is created to store the function output
+    house.address = {}
     house.address["Longitude"] = float(coordinate[2])
     house.address["Latitude"] = float(coordinate[5])
     house.address["street"] = address_raw.contents[1]
@@ -232,9 +233,10 @@ def creation_of_csv(houses):
     for house in houses:
         df_houses = df_houses.append(house.to_dict(), ignore_index=True)
 
-    df_houses.to_csv("data/"+datetime.now().strftime("%Y-%m-%d %H:%M:%S")+"_houses.csv")
+    df_houses.to_csv("../data/"+datetime.now().strftime("%Y-%m-%d_%H%M%S")+"_houses.csv")
 
 def main():
+    begining = datetime.now()
     print("Start webscraping")
     #show_technology(BASE_URL)
     #show_whois(BASE_URL)
@@ -252,7 +254,9 @@ def main():
 
     print(len(houses))
     creation_of_csv(houses)
-
+    ending = datetime.now()
+    lapse = ending - begining
+    print("Time needed :{}".format(lapse.total_seconds()))
 
 if __name__ == '__main__':
-   main()
+    main()
