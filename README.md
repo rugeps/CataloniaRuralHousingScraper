@@ -1,4 +1,4 @@
-# CataloniaRuralHousingScraper
+# Catalonia Rural Housing Web Scraping
 
 # Pràctica 1: Web scraping
 
