@@ -118,8 +118,11 @@ def get_elements_from_page(houses, content, page_number):
         h.town = house.find(class_='c-h4--result').contents[0]
         h.url = house.find(class_='c-result--link')['href']
         get_details_page(h.url, h)
-        stars =  house.find(class_='c-reviews--item--stars')
-        
+        try:
+            stars =  house.find(class_='c-reviews--item--stars')
+        except:
+            pass
+
         if stars is not None:
             stars = stars.findChild()
             stars_class = stars['class'][0]
