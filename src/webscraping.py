@@ -8,6 +8,38 @@ BASE_URL = 'https://www.escapadarural.com/'
 
 QUERY_URL = 'https://www.escapadarural.com/casas-rurales?l=cataluna'
 
+class House:
+    "This is a house class"
+    url: None
+    name: None
+    town: None
+    stars: None
+    score: None
+    reviews: None
+    rent_type: None
+    capacity: None
+    bedrooms: None
+    beds: None
+    price: None
+
+    def print(self):
+        print('-----------')
+        print('HOUSE INFO:')
+        print('-----------')
+
+        print("Url:", self.url)
+        print("Name:", self.name)
+        print("Town:", self.town)
+        print("Stars:", self.stars)
+        print("Score:", self.score)
+        print("Reviews:", self.reviews)
+        print("Rent type:", self.rent_type)
+        print("Capacity:", self.capacity)
+        print("Bedrooms:", self.bedrooms)
+        print("Beds:", self.beds)
+        print("Price:", self.price)
+        print('\n')
+
 def show_technology(url):
     print("Show web technologies of:", url)
     tech = builtwith.builtwith(url)
@@ -56,11 +88,14 @@ def get_list_page(url):
         print('Items per page:', str(last_page_item - first_page_item + 1))
     
     
-    houses = soup.find_all(class_='c-resultSnippet')
-       
-    for house in houses:
-        name = house.find(class_='highlight').contents[0].strip()
-        town = house.find(class_='c-h4--result').contents[0]
+    houses_list_result = soup.find_all(class_='c-resultSnippet')
+    houses = []
+
+    for house in houses_list_result:
+        h = House()
+        h.name = house.find(class_='highlight').contents[0].strip()
+        h.town = house.find(class_='c-h4--result').contents[0]
+        h.url = house.find(class_='c-result--link')['href']
         
         stars =  house.find(class_='c-reviews--item--stars')
         
@@ -69,37 +104,31 @@ def get_list_page(url):
             stars_class = stars['class'][0]
             score = extract_score(stars_class)
 
+        h.stars = stars_class if stars_class is not None else 0
+        h.score = score if score is not None else 0
+
         reviews = house.find(class_='c-review--number')
         
         if reviews is not None:
             reviews = get_content(reviews)
             reviews = re.sub('\\D', '', reviews)
+           
+        h.reviews = reviews if reviews is not None else 0
 
         result_items = house.find(class_="c-result--items")
 
-        rent_type = result_items.find(class_='c-result--item--text').contents[0]
-        capacity = result_items.find(class_='capacity').select("div:nth-of-type(2)")[0].contents[0].replace('\n','')
-        bedrooms = result_items.select(".c-result--item div:nth-of-type(2)")[2].contents[0]
-        beds = result_items.select(".c-result--item div:nth-of-type(2)")[3].contents[0]
+        h.rent_type = result_items.find(class_='c-result--item--text').contents[0]
+        h.capacity = result_items.find(class_='capacity').select("div:nth-of-type(2)")[0].contents[0].replace('\n','')
+        h.bedrooms = result_items.select(".c-result--item div:nth-of-type(2)")[2].contents[0]
+        h.beds = result_items.select(".c-result--item div:nth-of-type(2)")[3].contents[0]
         
-        price = house.find(class_='c-price--average').contents[0] + house.find(class_='c-price--text').contents[0]
-        
-        print('-----------')
-        print('HOUSE INFO:')
-        print('-----------')
-
-        print("Name:", name)
-        print("Town:", town)
-        print("Stars:", stars_class)
-        print("Score:", score)
-        print("Reviews:", reviews)
-        print("Rent type:", rent_type)
-        print("Capacity:", capacity)
-        print("Bedrooms:", bedrooms)
-        print("Beds:", beds)
-        print("Price:", price)
-        print('\n')
+        h.price = house.find(class_='c-price--average').contents[0] + house.find(class_='c-price--text').contents[0]
     
+        houses.append(h)
+
+    for house in houses:
+        house.print()
+
 def get_details_page(url):
     print("Get data from details:", url)
     page = requests.get(url)
