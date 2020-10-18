@@ -134,6 +134,14 @@ def get_robots_content(url):
     except:
         requests.exceptions.RequestException
 
+def get_sitemap_content(url):
+    print("Get sitemap content from:", url)
+    try:
+        response = requests.get(url)
+        return BeautifulSoup(response.content, "xml").prettify()
+    except:
+        requests.exceptions.RequestException
+
 def get_page_content(url, region, page_number):
     print("Get data from list page:", url)
     try:
@@ -317,6 +325,9 @@ def main():
     #robots = get_robots_content(ROBOTS_URL)
     #print(robots)
     
+    #sitemap = get_sitemap_content(SITEMAP_URL)
+    #print(sitemap)
+
     current_page = 1
 
     content = get_page_content(QUERY_URL, REGION, current_page)
@@ -339,4 +350,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    
