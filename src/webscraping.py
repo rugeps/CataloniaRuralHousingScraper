@@ -10,9 +10,10 @@ import whois
 from bs4 import BeautifulSoup
 from datetime import datetime
 
-BASE_URL = 'https://www.escapadarural.com/'
-
-QUERY_URL = 'https://www.escapadarural.com/casas-rurales?'
+BASE_URL    = 'https://www.escapadarural.com/'
+ROBOTS_URL  = BASE_URL + 'robots.txt'
+SITEMAP_URL = BASE_URL + 'sitemap.xml'
+QUERY_URL   = BASE_URL + '/casas-rurales?'
 
 houses = []
 REGION = 'cataluna'
@@ -124,6 +125,14 @@ def extract_score(stars):
 
 def get_content(element):
     return element.contents[0] if element is not None else None
+
+def get_robots_content(url):
+    print("Get robots content from:", url)
+    try:
+        response = requests.get(url)
+        return response.text
+    except:
+        requests.exceptions.RequestException
 
 def get_page_content(url, region, page_number):
     print("Get data from list page:", url)
@@ -300,8 +309,13 @@ def main():
     start_time = time.perf_counter()
     
     print("Start webscraping")
+    
     #show_technology(BASE_URL)
+    
     #show_whois(BASE_URL)
+    
+    #robots = get_robots_content(ROBOTS_URL)
+    #print(robots)
     
     current_page = 1
 
@@ -325,3 +339,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+    
