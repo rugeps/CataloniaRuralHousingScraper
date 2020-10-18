@@ -18,6 +18,17 @@ QUERY_URL   = BASE_URL + '/casas-rurales?'
 houses = []
 REGION = 'cataluna'
 
+headers = {
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+    "Accept-Encoding": "gzip, deflate, sdch, br",
+    "Accept-Language": "en-US,en;q=0.8",
+    "Cache-Control": "no-cache",
+    "dnt": "1",
+    "Pragma": "no-cache",
+    "Upgrade-Insecure-Requests": "1",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.75 Safari/537.36"
+}
+
 class House:
     "This is a house class"
     
@@ -129,7 +140,7 @@ def get_content(element):
 def get_robots_content(url):
     print("Get robots content from:", url)
     try:
-        response = requests.get(url)
+        response = requests.get(url, headers=headers)
         return response.text
     except:
         requests.exceptions.RequestException
@@ -137,7 +148,7 @@ def get_robots_content(url):
 def get_sitemap_content(url):
     print("Get sitemap content from:", url)
     try:
-        response = requests.get(url)
+        response = requests.get(url, headers=headers)
         return BeautifulSoup(response.content, "xml").prettify()
     except:
         requests.exceptions.RequestException
@@ -147,7 +158,7 @@ def get_page_content(url, region, page_number):
     try:
         params = {'l': region, 'page': page_number}
         url = url + urllib.parse.urlencode(params)
-        page = requests.get(url)
+        page = requests.get(url, headers=headers)
         
         soup = BeautifulSoup(page.content, 'html.parser')
         # print(soup.prettify)
@@ -253,8 +264,12 @@ def get_elements_from_page(houses, content, page_number):
 
 def get_details_page(url, house):
     print("Get data from details:", url)
-    page = requests.get(url)
-    soup = BeautifulSoup(page.content, 'html.parser')
+    try:
+        response = requests.get(url, headers=headers)
+    except:
+        requests.exceptions.RequestException
+
+    soup = BeautifulSoup(response.content, 'html.parser')
     location = soup.find(class_='mapInfo c-map-info')
 
     location_details = location.find_all(class_="c-map-info__parg")
