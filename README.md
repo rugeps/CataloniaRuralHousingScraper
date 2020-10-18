@@ -37,6 +37,8 @@ Els tests es poden executar des de l'script "test_simple.py" (contingut en la ca
 
 ## Recursos
 
-## Llicencia: Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)
+## Llicencia: 
+
+Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)
 
 [![License: CC BY-NC-ND 4.0](https://img.shields.io/badge/License-CC%20BY--NC--ND%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-nd/4.0/)
