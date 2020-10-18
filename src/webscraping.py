@@ -15,7 +15,6 @@ ROBOTS_URL  = BASE_URL + 'robots.txt'
 SITEMAP_URL = BASE_URL + 'sitemap.xml'
 QUERY_URL   = BASE_URL + '/casas-rurales?'
 
-houses = []
 REGION = 'cataluna'
 
 headers = {
@@ -188,7 +187,8 @@ def get_pagination(content):
 
     return pagination
 
-def get_elements_from_page(houses, content, page_number):
+def get_elements_from_page(content, page_number):
+    houses = []
     houses_list_result = content.find_all(class_='c-resultSnippet')
     
     for house in houses_list_result:
@@ -261,6 +261,8 @@ def get_elements_from_page(houses, content, page_number):
 
         # Save house in houses list
         houses.append(h)
+    
+    return houses
 
 def get_details_page(url, house):
     print("Get data from details:", url)
@@ -347,14 +349,17 @@ def main():
 
     content = get_page_content(QUERY_URL, REGION, current_page)
     pagination = get_pagination(content)
-       
+    
+    houses = []
+
     while(current_page <= pagination['pages']):
         print('Get data page', current_page)
         content = get_page_content(QUERY_URL, REGION, current_page)
-        get_elements_from_page(houses, content, current_page)
-        current_page = current_page + 1
+        houses_in_page = get_elements_from_page(content, current_page)
+        houses.extend(houses_in_page)
+        current_page += 1
 
-    print(len(houses))
+    print('Retrieved houses:', len(houses))
     
     create_csv(houses)
     
