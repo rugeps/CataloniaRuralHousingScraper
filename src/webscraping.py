@@ -19,19 +19,21 @@ REGION = 'cataluna'
 
 class House:
     "This is a house class"
-    url = None
-    name = None
-    town = None
-    stars = None
-    score = None
-    reviews = None
-    rent_type = None
-    capacity = None
-    bedrooms = None
-    beds = None
-    price = None
-    address = None
-    url_image = None
+    
+    def __init__(self): 
+        self.url = None
+        self.name = None
+        self.town = None
+        self.stars = None
+        self.score = None
+        self.reviews = None
+        self.rent_type = None
+        self.capacity = None
+        self.bedrooms = None
+        self.beds = None
+        self.price = None
+        self.url_image = None
+        self.address = self.Address()
 
     def print(self):
         print('-----------')
@@ -66,15 +68,35 @@ class House:
             "bedrooms" : self.bedrooms,
             "beds" : self.beds,
             "price" : self.price,
-            "longitude" : self.address["longitude"],
-            "latitude" : self.address["latitude"],
-            "street" : self.address["street"],
-            "municipality" : self.address["municipality"],
-            "province" : self.address["province"],
+            "longitude" : self.address.longitude,
+            "latitude" : self.address.latitude,
+            "street" : self.address.street,
+            "municipality" : self.address.municipality,
+            "province" : self.address.province,
             "url_image" : self.url_image
         }
         
         return house_dict
+
+    class Address:
+
+        def __init__(self): 
+            self.longitude = None
+            self.latitude = None
+            self.street = None
+            self.municipality= None
+            self.province = None
+
+        def print_address(self):
+            print('-----------')
+            print('ADDRESS INFO:')
+            print('-----------')
+
+            print("Longitude:", self.longitude)
+            print("Latitude:", self.latitude)
+            print("Street:", self.street)
+            print("Municipality:", self.municipality)
+            print("Province:", self.province)
 
 def show_technology(url):
     print("Show web technologies of:", url)
@@ -225,14 +247,11 @@ def get_details_page(url, house):
 
     # coordinate for GPS data
     coordinate = location_details[1].contents[1].split(" ")
-
-    # Dictionary address is created to store the function output
-    house.address = {}
-    house.address["longitude"] = float(coordinate[2])
-    house.address["latitude"] = float(coordinate[5])
-    house.address["street"] = address_raw.contents[1]
-    house.address["municipality"] = get_content(address_raw.find_all("a")[0])
-    house.address["province"] = get_content(address_raw.find_all("a")[1])
+    house.address.longitude = float(coordinate[2])
+    house.address.latitude = float(coordinate[5])
+    house.address.street = address_raw.contents[1]
+    house.address.municipality = get_content(address_raw.find_all("a")[0])
+    house.address.province = get_content(address_raw.find_all("a")[1])
 
     house.url_image = "https:" + soup.find(class_='c-gallery__image').attrs["src"]
 
