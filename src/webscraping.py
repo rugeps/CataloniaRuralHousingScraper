@@ -9,6 +9,8 @@ import urllib.parse
 import whois
 from bs4 import BeautifulSoup
 from datetime import datetime
+from itertools import chain 
+from multiprocessing import Pool
 
 BASE_URL    = 'https://www.escapadarural.com/'
 ROBOTS_URL  = BASE_URL + 'robots.txt'
@@ -64,7 +66,7 @@ class House:
         print("Price:", self.price)
         print("Address:", self.address)
         print("URL_Image:", self.url_image)
-        print('\n')
+        print('\n') 
 
     def to_dict(self):
         house_dict = {
@@ -86,7 +88,6 @@ class House:
             "province" : self.address.province,
             "url_image" : self.url_image
         }
-        
         return house_dict
 
     class Address:
@@ -134,7 +135,7 @@ def extract_score(stars):
     return float(score)
 
 def get_content(element):
-    return element.contents[0] if element is not None else None
+    return str(element.contents[0]) if element is not None else None
 
 def get_robots_content(url):
     print("Get robots content from:", url)
@@ -165,8 +166,17 @@ def get_page_content(url, region, page_number):
     except:
         requests.exceptions.RequestException
 
-def get_pagination(content):
-    pagination_result = content.find(class_='c-p--pager').contents[0].strip()
+def get_pagination(url, region, page_number):
+    print("Get pagination of:", url)
+    try:
+        params = {'l': region, 'page': page_number}
+        url = url + urllib.parse.urlencode(params)
+        page = requests.get(url, headers=headers)
+        soup = BeautifulSoup(page.content, 'html.parser')
+    except:
+        requests.exceptions.RequestException
+
+    pagination_result = get_content(soup.find(class_='c-p--pager')).strip()
     
     match = re.search("([0-9\\.]{1,}) - ([0-9\\.]{1,}) de ([0-9\\.]{1,}) alojamientos rurales", pagination_result)
     
@@ -204,7 +214,7 @@ def get_elements_from_page(content, page_number):
         h.town = get_content(house.find(class_='c-h4--result'))
         
         # Extract house url
-        h.url = house.find(class_='c-result--link')['href']
+        h.url = str(house.find(class_='c-result--link')['href'])
        
         # Extract house rating
         try:
@@ -217,7 +227,7 @@ def get_elements_from_page(content, page_number):
             stars = stars.findChild()
             stars_class = stars['class'][0]
             score = extract_score(stars_class)
-            h.stars = stars_class if stars_class is not None else 0
+            h.stars = str(stars_class) if stars_class is not None else 0
             h.score = score if score is not None else 0.0
 
         # Extract house reviews
@@ -227,7 +237,7 @@ def get_elements_from_page(content, page_number):
             reviews = get_content(reviews)
             reviews = re.sub('\\D', '', reviews)
            
-        h.reviews = reviews if reviews is not None else 0
+        h.reviews = int(reviews) if reviews is not None else 0
 
         # Extract house details
         result_items = house.find(class_="c-result--items")
@@ -254,7 +264,7 @@ def get_elements_from_page(content, page_number):
             h.beds = None
 
         # Extract house price
-        h.price = get_content(house.find(class_='c-price--average')) + get_content(house.find(class_='c-price--text'))
+        h.price = str(get_content(house.find(class_='c-price--average'))) + str(get_content(house.find(class_='c-price--text')))
 
         # Process house details page
         get_details_page(h.url, h)
@@ -281,13 +291,13 @@ def get_details_page(url, house):
 
     # coordinate for GPS data
     coordinate = location_details[1].contents[1].split(" ")
-    house.address.longitude = float(coordinate[2])
-    house.address.latitude = float(coordinate[5])
-    house.address.street = address_raw.contents[1]
+    house.address.longitude = str(coordinate[2])
+    house.address.latitude = str(coordinate[5])
+    house.address.street = str(address_raw.contents[1]).replace(';', '').replace('-', '').strip()
     house.address.municipality = get_content(address_raw.find_all("a")[0])
     house.address.province = get_content(address_raw.find_all("a")[1])
 
-    house.url_image = "https:" + soup.find(class_='c-gallery__image').attrs["src"]
+    house.url_image = "https:" + str(soup.find(class_='c-gallery__image').attrs["src"])
 
 def create_csv(houses):
     # Creation of pandas dataframe
@@ -319,7 +329,7 @@ def create_csv(houses):
         df_houses = df_houses.append(house.to_dict(), ignore_index=True)
 
     # Create a path to store de dataset
-    path = os.path.abspath(os.path.join(os.getcwd(), '..', 'data'))
+    path = os.path.abspath(os.path.join(os.path.abspath(__file__), '..', '..', 'data'))
 
     if not os.path.exists(path):
         os.makedirs(path)
@@ -327,8 +337,36 @@ def create_csv(houses):
     # Create File Name
     filename = 'catalonia_rural_houses_' + datetime.now().strftime("%Y%m%d%H%M%S") + '.csv'
     
+    file_path = os.path.join(path, filename)
+    
     # Save dataframe to File
-    df_houses.to_csv(os.path.join(path, filename))
+    df_houses.to_csv(file_path)
+
+    print('Dataset saved to:', file_path)
+
+def work_unit(current_page):
+    print('Get data page', current_page)
+    content = get_page_content(QUERY_URL, REGION, current_page)
+    houses_in_page = get_elements_from_page(content, current_page)
+    return houses_in_page
+
+def work_no_parallelized():
+    current_page = 1
+
+    pagination = get_pagination(QUERY_URL, REGION, current_page)
+   
+    houses = []
+
+    while(current_page <= pagination['pages']):
+        print('Get data page', current_page)
+        content = get_page_content(QUERY_URL, REGION, current_page)
+        houses_in_page = get_elements_from_page(content, current_page)
+        houses.extend(houses_in_page)
+        current_page += 1
+
+    print('Retrieved houses:', len(houses))   
+    
+    return houses
 
 def main():
     start_time = time.perf_counter()
@@ -347,17 +385,16 @@ def main():
 
     current_page = 1
 
-    content = get_page_content(QUERY_URL, REGION, current_page)
-    pagination = get_pagination(content)
-    
-    houses = []
+    pagination = get_pagination(QUERY_URL, REGION, current_page)
 
-    while(current_page <= pagination['pages']):
-        print('Get data page', current_page)
-        content = get_page_content(QUERY_URL, REGION, current_page)
-        houses_in_page = get_elements_from_page(content, current_page)
-        houses.extend(houses_in_page)
-        current_page += 1
+    pages = range(current_page, pagination['pages'] + 1, 1)
+
+    p = Pool()
+    result = p.map(work_unit, pages)
+    houses = list(chain(*result))
+       
+    p.close()
+    p.join()
 
     print('Retrieved houses:', len(houses))
     
