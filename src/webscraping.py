@@ -1,4 +1,5 @@
 import builtwith
+import csv
 import math
 import os
 import pandas as pd
@@ -344,6 +345,35 @@ def create_csv(houses):
 
     print('Dataset saved to:', file_path)
 
+def create_csv2(houses):
+    # Creation of pandas dataframe
+    print("Export data to csv (csv.DicWriter)")
+
+    # Create a path to store de dataset
+    path = os.path.abspath(os.path.join(os.path.abspath(__file__), '..', '..', 'data'))
+
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+    # Create File Name
+    filename = 'catalonia_rural_houses_' + datetime.now().strftime("%Y%m%d%H%M%S") + '.csv'
+    
+    file_path = os.path.join(path, filename)
+    
+    with open(file_path, 'w', encoding="utf-8", newline='') as f:
+        fnames = ['url', 'name', 'town', 'stars', 'score', 'reviews', 'rent_type', 'capacity', 'bedrooms', 'beds', 'price', 'longitude', 'latitude', 'street', 'municipality', 'province', 'url_image']
+        writer = csv.DictWriter(f, fieldnames=fnames, delimiter=';')    
+
+        writer.writeheader()
+
+        for house in houses:
+            writer.writerow(house.to_dict())
+    
+    f.close()
+    
+    print('Dataset saved to:', file_path)
+
+
 def work_unit(current_page):
     print('Get data page', current_page)
     content = get_page_content(QUERY_URL, REGION, current_page)
@@ -367,6 +397,7 @@ def work_no_parallelized():
     print('Retrieved houses:', len(houses))   
     
     return houses
+
 
 def main():
     start_time = time.perf_counter()
@@ -398,7 +429,7 @@ def main():
 
     print('Retrieved houses:', len(houses))
     
-    create_csv(houses)
+    create_csv2(houses)
     
     end_time = time.perf_counter()
     elapsed_time = end_time - start_time
