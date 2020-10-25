@@ -10,9 +10,9 @@ import urllib.parse
 import whois
 from bs4 import BeautifulSoup
 from datetime import datetime
-from itertools import chain 
 from multiprocessing import Pool
-import sys
+from threading import Thread, Lock
+
 
 BASE_URL    = 'https://www.escapadarural.com/'
 ROBOTS_URL  = BASE_URL + 'robots.txt'
@@ -31,6 +31,8 @@ headers = {
     "Upgrade-Insecure-Requests": "1",
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.75 Safari/537.36"
 }
+
+houses_glob = []
 
 class House:
     "This is a house class"
@@ -113,6 +115,7 @@ class House:
             print("Street:", self.street)
             print("Municipality:", self.municipality)
             print("Province:", self.province)
+
 
 def show_technology(url):
     print("Show web technologies of:", url)
@@ -201,13 +204,17 @@ def get_pagination(url, region, page_number):
 
     return pagination
 
-def get_elements_from_page(content, page_number):
-    houses = []
-    houses_list_result = content.find_all(class_='c-resultSnippet')
 
-    for house, count in zip(houses_list_result, range(len(houses_list_result))):
+def get_elements_from_page(content, page_number):
+    # global houses_list_json
+    global houses_glob
+    houses = []
+
+    def get_elements_from_page_thread(house, count, page_number, lock):
+        # global houses_list_json
+        global houses_glob
         h = House()
-        
+
         # Extract house name
         try:
             h.name = get_content(house.find(class_='c-result--link').find("span")).strip()
@@ -216,13 +223,13 @@ def get_elements_from_page(content, page_number):
 
         # Extract town
         h.town = get_content(house.find(class_='c-h4--result'))
-        
+
         # Extract house url
         h.url = str(house.find(class_='c-result--link')['href'])
 
         # Assign house number
-        h.house_index = page_number*20 + count
-       
+        h.house_index = page_number * 20 + count
+
         # Extract house rating
         try:
             stars = house.find(class_='c-reviews--item--stars')
@@ -239,11 +246,11 @@ def get_elements_from_page(content, page_number):
 
         # Extract house reviews
         reviews = house.find(class_='c-review--number')
-        
+
         if reviews is not None:
             reviews = get_content(reviews)
             reviews = re.sub('\\D', '', reviews)
-           
+
         h.reviews = int(reviews) if reviews is not None else 0
 
         # Extract house details
@@ -251,10 +258,11 @@ def get_elements_from_page(content, page_number):
 
         # Extract house rent type
         h.rent_type = get_content(result_items.find(class_='c-result--item--text'))
-        
+
         # Extract house capacity
         try:
-            h.capacity = get_content(result_items.find(class_='capacity').select("div:nth-of-type(2)")[0]).replace('\n','')
+            h.capacity = get_content(result_items.find(class_='capacity').select("div:nth-of-type(2)")[0]).replace('\n',
+                                                                                                                   '')
         except:
             h.capacity = None
 
@@ -271,15 +279,31 @@ def get_elements_from_page(content, page_number):
             h.beds = None
 
         # Extract house price
-        h.price = str(get_content(house.find(class_='c-price--average'))) + str(get_content(house.find(class_='c-price--text')))
+        h.price = str(get_content(house.find(class_='c-price--average'))) + str(
+            get_content(house.find(class_='c-price--text')))
 
         # Process house details page
         get_details_page(h.url, h)
 
-        # Save house in houses list
-        houses.append(h)
-    
-    return houses
+
+        lock.acquire()
+        houses_glob.append(h)
+        lock.release()
+
+    houses_list_result = content.find_all(class_='c-resultSnippet')
+    threads = []
+    lock = Lock()
+    for house, count in zip(houses_list_result, range(len(houses_list_result))):
+
+
+        thread = Thread(target=get_elements_from_page_thread, args=(house, count, page_number, lock))
+        threads.append(thread)
+        # Thread is executed
+        thread.start()
+
+    for thread in threads:
+        thread.join()
+
 
 def get_details_page(url, house):
     print("Get data from details:", url)
@@ -374,20 +398,15 @@ def create_csv2(houses):
 
         writer.writeheader()
 
-#       sorted_houses = [houses[i-1] for i in index_house]
-
+        # house_index is used to order houses in the final datasat in the same order that them appeared in website
         index_house = []
         for house in houses:
             index_house.append(house.house_index)
 
-        print("index_house")
-        print(index_house)
+        index_order = sorted(range(len(index_house)), key=lambda k: index_house[k])
 
-        for i in range(len(index_house)):
-            writer.writerow(houses[index_house.index(i)].to_dict())
-
-        # for house in houses:
-        #     writer.writerow(house.to_dict())
+        for i in index_order:
+            writer.writerow(houses[i].to_dict())
     
     f.close()
     
@@ -395,16 +414,16 @@ def create_csv2(houses):
 
 
 def work_unit(current_page):
+    global houses_glob
     print('Get data page', current_page)
     content = get_page_content(QUERY_URL, REGION, current_page)
-    houses_in_page = get_elements_from_page(content, current_page)
-    return houses_in_page
+    get_elements_from_page(content, current_page)
+    return houses_glob
 
 def work_no_parallelized():
     current_page = 1
 
     pagination = get_pagination(QUERY_URL, REGION, current_page)
-   
     houses = []
 
     while(current_page <= pagination['pages']):
@@ -418,6 +437,16 @@ def work_no_parallelized():
     
     return houses
 
+def add_houses(houses, new_houses): # While control not duplicating elements as a consecuence of multithreading
+    index_house = []
+    for house in houses:
+        index_house.append(house.house_index)
+
+    for new_house in new_houses:
+        if new_house.house_index not in index_house:
+            houses.append(new_house)
+
+    return houses
 
 def main():
     start_time = time.perf_counter()
@@ -434,20 +463,23 @@ def main():
     #sitemap = get_sitemap_content(SITEMAP_URL)
     #print(sitemap)
 
-    current_page = 0
+    current_page = 1
 
     pagination = get_pagination(QUERY_URL, REGION, current_page)
-    pages = range(current_page, pagination['pages'], 1)
+    # pagination['pages'] = 10 # for brief testing
+    pages = range(current_page, pagination['pages']+1, 1)
 
     p = Pool()
     result = p.map(work_unit, pages)
-    houses = list(chain(*result))
+    houses = []
+    for i in result:
+        houses = add_houses(houses, i)
+
        
     p.close()
     p.join()
 
     print('Retrieved houses:', len(houses))
-    
     create_csv2(houses)
     
     end_time = time.perf_counter()
