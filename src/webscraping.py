@@ -12,6 +12,7 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 from itertools import chain 
 from multiprocessing import Pool
+import sys
 
 BASE_URL    = 'https://www.escapadarural.com/'
 ROBOTS_URL  = BASE_URL + 'robots.txt'
@@ -48,6 +49,7 @@ class House:
         self.price = None
         self.url_image = None
         self.address = self.Address()
+        self.house_index = None
 
     def print(self):
         print('-----------')
@@ -67,6 +69,7 @@ class House:
         print("Price:", self.price)
         print("Address:", self.address)
         print("URL_Image:", self.url_image)
+        print("House_index:", self.house_index)
         print('\n') 
 
     def to_dict(self):
@@ -201,8 +204,8 @@ def get_pagination(url, region, page_number):
 def get_elements_from_page(content, page_number):
     houses = []
     houses_list_result = content.find_all(class_='c-resultSnippet')
-    
-    for house in houses_list_result:
+
+    for house, count in zip(houses_list_result, range(len(houses_list_result))):
         h = House()
         
         # Extract house name
@@ -216,6 +219,9 @@ def get_elements_from_page(content, page_number):
         
         # Extract house url
         h.url = str(house.find(class_='c-result--link')['href'])
+
+        # Assign house number
+        h.house_index = page_number*20 + count
        
         # Extract house rating
         try:
@@ -321,13 +327,15 @@ def create_csv(houses):
         "street": [],
         "municipality": [],
         "province": [],
-        "url_image": []
+        "url_image": [],
+        "house_index" : []
     }
     
     df_houses = pd.DataFrame(data)
     
     for house in houses:
-        df_houses = df_houses.append(house.to_dict(), ignore_index=True)
+        # df_houses = df_houses.append(house.to_dict(), ignore_index=True)
+        df_houses = df_houses.append(house.to_dict(), index_label="house_index")
 
     # Create a path to store de dataset
     path = os.path.abspath(os.path.join(os.path.abspath(__file__), '..', '..', 'data'))
@@ -366,8 +374,20 @@ def create_csv2(houses):
 
         writer.writeheader()
 
+#       sorted_houses = [houses[i-1] for i in index_house]
+
+        index_house = []
         for house in houses:
-            writer.writerow(house.to_dict())
+            index_house.append(house.house_index)
+
+        print("index_house")
+        print(index_house)
+
+        for i in range(len(index_house)):
+            writer.writerow(houses[index_house.index(i)].to_dict())
+
+        # for house in houses:
+        #     writer.writerow(house.to_dict())
     
     f.close()
     
@@ -414,11 +434,10 @@ def main():
     #sitemap = get_sitemap_content(SITEMAP_URL)
     #print(sitemap)
 
-    current_page = 1
+    current_page = 0
 
     pagination = get_pagination(QUERY_URL, REGION, current_page)
-
-    pages = range(current_page, pagination['pages'] + 1, 1)
+    pages = range(current_page, pagination['pages'], 1)
 
     p = Pool()
     result = p.map(work_unit, pages)
