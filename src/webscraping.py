@@ -2,7 +2,6 @@ import builtwith
 import csv
 import math
 import os
-import pandas as pd
 import re
 import requests
 import time
@@ -206,9 +205,7 @@ def get_pagination(url, region, page_number):
 
 
 def get_elements_from_page(content, page_number):
-    # global houses_list_json
     global houses_glob
-    houses = []
 
     def get_elements_from_page_thread(house, count, page_number, lock):
         # global houses_list_json
