@@ -414,6 +414,7 @@ def create_csv2(houses):
 
 
 def work_unit(current_page):
+    # Function created to work in multiprocessing
     global houses_glob
     print('Get data page', current_page)
     content = get_page_content(QUERY_URL, REGION, current_page)
@@ -437,7 +438,7 @@ def work_no_parallelized():
     
     return houses
 
-def add_houses(houses, new_houses): # While control not duplicating elements as a consecuence of multithreading
+def add_houses(houses, new_houses): # While control not duplicating elements as a consequence of multithreading
     index_house = []
     for house in houses:
         index_house.append(house.house_index)
@@ -449,6 +450,7 @@ def add_houses(houses, new_houses): # While control not duplicating elements as 
     return houses
 
 def main():
+    # Time lasted is calculated
     start_time = time.perf_counter()
     
     print("Start webscraping")
@@ -463,25 +465,31 @@ def main():
     #sitemap = get_sitemap_content(SITEMAP_URL)
     #print(sitemap)
 
+    # First preview of data to scrap is done; list of url to scrap is indexed
     current_page = 1
 
     pagination = get_pagination(QUERY_URL, REGION, current_page)
     # pagination['pages'] = 10 # for brief testing
     pages = range(current_page, pagination['pages']+1, 1)
 
+    # multiprocess is carried out; each url is scraped independently
     p = Pool()
     result = p.map(work_unit, pages)
+
+    # The result from multiprocess is joined with specific function to removed duplicated results.
+    # (Duplicated results can occur as a consequence of multithreading)
     houses = []
     for i in result:
         houses = add_houses(houses, i)
 
-       
     p.close()
     p.join()
 
     print('Retrieved houses:', len(houses))
+
+    # Data extracted is exported into CSV file
     create_csv2(houses)
-    
+
     end_time = time.perf_counter()
     elapsed_time = end_time - start_time
     
