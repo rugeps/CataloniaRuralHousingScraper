@@ -7,6 +7,7 @@ import requests
 import time
 import urllib.parse
 import whois
+from itertools import chain
 from bs4 import BeautifulSoup
 from datetime import datetime
 from multiprocessing import Pool
@@ -51,6 +52,12 @@ class House:
         self.url_image = None
         self.address = self.Address()
         self.house_index = None
+
+    def __eq__(self, other):
+        return self.url == other.url
+
+    def __hash__(self):
+        return hash((self.url))
 
     def print(self):
         print('-----------')
@@ -373,17 +380,6 @@ def work_unit(current_page):
     return houses_glob
 
 
-def add_houses(houses, new_houses): # While control not duplicating elements as a consequence of multithreading
-    index_house = []
-    for house in houses:
-        index_house.append(house.house_index)
-
-    for new_house in new_houses:
-        if new_house.house_index not in index_house:
-            houses.append(new_house)
-
-    return houses
-
 def main():
     # Time lasted is calculated
     start_time = time.perf_counter()
@@ -413,9 +409,8 @@ def main():
 
     # The result from multiprocess is joined with specific function to removed duplicated results.
     # (Duplicated results can occur as a consequence of multithreading)
-    houses = []
-    for i in result:
-        houses = add_houses(houses, i)
+
+    houses = list(set(chain(*result)))
 
     p.close()
     p.join()
