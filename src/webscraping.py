@@ -330,54 +330,8 @@ def get_details_page(url, house):
 
     house.url_image = "https:" + str(soup.find(class_='c-gallery__image').attrs["src"])
 
+
 def create_csv(houses):
-    # Creation of pandas dataframe
-    print("Export data to csv")
-    
-    data = {
-        "url": [],
-        "name": [],
-        "town": [],
-        "stars": [],
-        "score": [],
-        "reviews": [],
-        "rent_type": [],
-        "capacity": [],
-        "bedrooms": [],
-        "beds": [],
-        "price": [],
-        "longitude": [], 
-        "latitude": [],
-        "street": [],
-        "municipality": [],
-        "province": [],
-        "url_image": [],
-        "house_index" : []
-    }
-    
-    df_houses = pd.DataFrame(data)
-    
-    for house in houses:
-        # df_houses = df_houses.append(house.to_dict(), ignore_index=True)
-        df_houses = df_houses.append(house.to_dict(), index_label="house_index")
-
-    # Create a path to store de dataset
-    path = os.path.abspath(os.path.join(os.path.abspath(__file__), '..', '..', 'data'))
-
-    if not os.path.exists(path):
-        os.makedirs(path)
-
-    # Create File Name
-    filename = 'catalonia_rural_houses_' + datetime.now().strftime("%Y%m%d%H%M%S") + '.csv'
-    
-    file_path = os.path.join(path, filename)
-    
-    # Save dataframe to File
-    df_houses.to_csv(file_path)
-
-    print('Dataset saved to:', file_path)
-
-def create_csv2(houses):
     # Creation of pandas dataframe
     print("Export data to csv (csv.DicWriter)")
 
@@ -421,22 +375,6 @@ def work_unit(current_page):
     get_elements_from_page(content, current_page)
     return houses_glob
 
-def work_no_parallelized():
-    current_page = 1
-
-    pagination = get_pagination(QUERY_URL, REGION, current_page)
-    houses = []
-
-    while(current_page <= pagination['pages']):
-        print('Get data page', current_page)
-        content = get_page_content(QUERY_URL, REGION, current_page)
-        houses_in_page = get_elements_from_page(content, current_page)
-        houses.extend(houses_in_page)
-        current_page += 1
-
-    print('Retrieved houses:', len(houses))   
-    
-    return houses
 
 def add_houses(houses, new_houses): # While control not duplicating elements as a consequence of multithreading
     index_house = []
@@ -488,7 +426,7 @@ def main():
     print('Retrieved houses:', len(houses))
 
     # Data extracted is exported into CSV file
-    create_csv2(houses)
+    create_csv(houses)
 
     end_time = time.perf_counter()
     elapsed_time = end_time - start_time
