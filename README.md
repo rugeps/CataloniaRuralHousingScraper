@@ -13,29 +13,40 @@ Aquesta pràctica forma part de la asignatura _Tipología y cicle de vida de los
 
 ## Contingut del repositori
 
-* **src/
+* **src/:** (scripts en Python)
+* **data/:** (dataset)
 
 ## Començant
 
-Per a usar el present paquet,...
-
-cal executar l'script ".py" (el qual es troba dins la carpeta principal).
-
-Aquest script està preparat per buscar les dades en els arxius en l'ubicació comentada prèviament.
-
-L'script iniciarà les funcions que recorreran el lloc web comentat obtenint les dades necessaries ...
-
 ### Prerequisits
 
-Per executar i testejar el software es recomanable usar l'IDE PyCharm.
+Per executar l'script *"webscraping.py"* són necesàries les següents dependències:
 
-Per altre banda fa falta disposar de tots els paquets llistats a `requirements.txt` en l'ambient de treball.
+* Requests
+* BeautifulSoup
+* Builtwith
+* Whois
 
-## Testeig
+Aquestes dependències es poden instal·lar amb les següents comandes
 
-Els tests es poden executar des de l'script "test_simple.py" (contingut en la carpeta "test").
+```python
+pip install requests
+pip install beautifulsoup4
+pip install python-whois
+pip install builtwith
+```
 
-## Recursos
+### Instal·lació i ús
+
+Clonar el repositori, accedir al directori i executar l'script *"webscraping.py"*.
+
+```python
+git clone git@github.com:rugeps/CataloniaRuralHousingScraper.git
+cd cd CataloniaRuralHousingScraper/src/
+python webscraping.py 
+```
+
+Aquest script està preparat per buscar i extreure dades de la web [_EscapadaRural_](https://www.escapadarural.com/) i generar un _dataset_. Una vegada finalitzi l'execució al directori *data* podrem trobar un *CSV* 'catalonia_rural_houses_*timestamp*.csv', amb totes les dades extretes.  
 
 ## Llicencia: 
 
