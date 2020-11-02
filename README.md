@@ -15,6 +15,7 @@ Aquesta pràctica forma part de la asignatura _Tipología y cicle de vida de los
 
 * **src/:** (scripts en Python)
 * **data/:** (dataset)
+* **docs/:** (documentació del projecte i respostes a les preguntes de la pràctica)
 
 ## Començant
 
@@ -47,6 +48,12 @@ python webscraping.py
 ```
 
 Aquest script està preparat per buscar i extreure dades de la web [_EscapadaRural_](https://www.escapadarural.com/) i generar un _dataset_. Una vegada finalitzi l'execució al directori *data* podrem trobar un *CSV* 'catalonia_rural_houses_*timestamp*.csv', amb totes les dades extretes.  
+
+## Dataset
+
+El dataset generat es troba publicat a Zenodo (DOI: 10.5281/zenodo.4164777), i es pot consultar a: 
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4164777.svg)](https://doi.org/10.5281/zenodo.4164777)
 
 ## Llicencia: 
 
